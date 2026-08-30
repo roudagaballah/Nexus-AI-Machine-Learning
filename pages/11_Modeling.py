@@ -47,7 +47,7 @@ def main():
     t = get_dataset_telemetry(df)
 
     render_hero(
-        badge="● MACHINE LEARNING PROTOCOL",
+        badge="Machine Learning",
         title="Model Selection & Training Studio",
         subtitle="Configure ML paradigms, tune algorithm hyperparameters, partition training sets, and execute high-performance training."
     )
@@ -70,20 +70,20 @@ def main():
                 target_options = df.columns.tolist()
                 prev_target = st.session_state.get("target_column")
                 def_t_idx = target_options.index(prev_target) if prev_target in target_options else len(target_options) - 1
-                target_col = st.selectbox("🎯 Select Target Variable (Y):", target_options, index=def_t_idx, key="ml_target_col")
+                target_col = st.selectbox("Target Variable (Y):", target_options, index=def_t_idx, key="ml_target_col")
                 st.session_state.target_column = target_col
 
                 avail_features = [c for c in num_cols if c != target_col]
-                selected_features = st.multiselect("Select Input Features (X):", avail_features, default=avail_features, key="ml_selected_features")
+                selected_features = st.multiselect("Input Features (X):", avail_features, default=avail_features, key="ml_selected_features")
             else:
                 st.session_state.target_column = None
                 target_col = None
                 avail_features = num_cols
-                selected_features = st.multiselect("Select Clustering Features (X):", avail_features, default=avail_features, key="ml_cluster_features")
+                selected_features = st.multiselect("Clustering Features (X):", avail_features, default=avail_features, key="ml_cluster_features")
 
     # Data Validation Guard
     if not selected_features:
-        st.error("❌ Please select at least one numerical feature for modeling.")
+        st.error("Please select at least one numerical feature for modeling.")
         return
 
     X = df[selected_features].copy()
@@ -91,10 +91,10 @@ def main():
 
     # Handle missing in X/y if any
     if X.isnull().any().any():
-        st.error("❌ Missing values detected in modeling features. Please return to the Missing Values stage.")
+        st.error("Missing values detected in modeling features. Please return to the Missing Values stage.")
         return
     if y is not None and y.isnull().any():
-        st.error("❌ Missing values detected in the target column. Please resolve missing values before training.")
+        st.error("Missing values detected in the target column. Please resolve missing values before training.")
         return
 
     # 2. Model Architecture & Hyperparameters
@@ -115,10 +115,10 @@ def main():
             else:
                 algos = ["K-Means Clustering"]
 
-            model_choice = st.selectbox("🤖 Select Algorithm:", algos, key="ml_algo_choice")
+            model_choice = st.selectbox("Select Algorithm:", algos, key="ml_algo_choice")
 
         with col_params:
-            st.markdown("#### 🔧 Hyperparameters Matrix")
+            st.markdown("##### Hyperparameter Matrix")
             model = None
 
             if "Random Forest" in model_choice:
@@ -165,7 +165,7 @@ def main():
 
             elif "Naive Bayes" in model_choice:
                 model = GaussianNB()
-                st.info("Gaussian Naive Bayes operates on maximum likelihood Bayesian probabilities.")
+                st.caption("Gaussian Naive Bayes assumes independent conditional normal distributions.")
 
             elif "Neural Network" in model_choice:
                 c1, c2 = st.columns(2)
@@ -178,7 +178,7 @@ def main():
 
             elif "Linear Regression" in model_choice:
                 model = LinearRegression()
-                st.info("Ordinary Least Squares (OLS) Linear Regression.")
+                st.caption("Ordinary Least Squares (OLS) Linear Regression.")
 
             elif "Ridge" in model_choice:
                 alpha = st.slider("L2 Regularization Alpha:", 0.01, 100.0, 1.0)
@@ -208,9 +208,9 @@ def main():
         
         test_pct = 0.20
         if problem_type in ["Classification", "Regression"]:
-            test_pct = st.slider("Test Partition Ratio (Holdout Validation):", 0.10, 0.40, 0.20, step=0.05, format="%d%%")
+            test_pct = st.slider("Validation Holdout Ratio (Test Split):", 0.10, 0.40, 0.20, step=0.05, format="%d%%")
 
-        if st.button("⚡ INITIALIZE MODEL TRAINING", use_container_width=True, key="btn_train_model"):
+        if st.button("Train Model", use_container_width=True, key="btn_train_model"):
             try:
                 progress_bar = st.progress(0)
                 status_text = st.empty()
@@ -219,11 +219,11 @@ def main():
                     time.sleep(0.002)
                     progress_bar.progress(i + 1)
                     if i == 20:
-                        status_text.info("🔄 Synchronizing preprocessing pipeline & data partitions...")
+                        status_text.info("Synchronizing preprocessing pipeline and partitions...")
                     elif i == 50:
-                        status_text.info(f"🧠 Training {model_choice} architecture...")
+                        status_text.info(f"Training {model_choice} model...")
                     elif i == 85:
-                        status_text.info("📊 Calculating performance telemetry...")
+                        status_text.info("Computing evaluation metrics and diagnostics...")
 
                 status_text.empty()
                 progress_bar.empty()
@@ -325,7 +325,7 @@ def main():
                         "preprocessing_pipeline": pipeline,
                     })
 
-                    st.success(f"✓ Model trained successfully! (Accuracy: {acc:.2%}, F1: {f1:.2%})")
+                    st.success(f"Model trained successfully (Accuracy: {acc:.2%}, F1: {f1:.2%}).")
 
                 elif problem_type == "Regression":
                     pipeline.target_encoder = None
@@ -372,7 +372,7 @@ def main():
                         "preprocessing_pipeline": pipeline,
                     })
 
-                    st.success(f"✓ Regression model trained successfully! (R²: {r2:.4f}, RMSE: {rmse:.4f})")
+                    st.success(f"Regression model trained successfully (R²: {r2:.4f}, RMSE: {rmse:.4f}).")
 
                 elif problem_type == "Clustering":
                     pipeline.target_encoder = None
@@ -406,18 +406,18 @@ def main():
                         "preprocessing_pipeline": pipeline,
                     })
 
-                    st.success(f"✓ Clustering model trained! (Silhouette Score: {sil:.4f})")
+                    st.success(f"Clustering model trained successfully (Silhouette Score: {sil:.4f}).")
 
                 st.rerun()
 
             except Exception as e:
-                st.error(f"❌ Training failed: {e}")
+                st.error(f"Training failed: {e}")
 
     # Summary of Trained Model
     if st.session_state.get("model") is not None:
         render_html("<br>")
         with st.container(border=True):
-            render_section_header("04", "Active Model Telemetry Snapshot")
+            render_section_header("04", "Active Model Performance Summary")
             m = st.session_state.get("evaluation_metrics", {})
             m_cards = []
             for k, v in m.items():
@@ -425,15 +425,15 @@ def main():
                     val_str = f"{v:.4f}" if "Score" in k or "R²" in k or "Index" in k else f"{v:.2%}" if "Accuracy" in k or "F1" in k or "Precision" in k or "Recall" in k else f"{v:.2f}"
                 else:
                     val_str = str(v)
-                m_cards.append({"icon": "⭐", "label": k, "value": val_str})
+                m_cards.append({"icon": "target", "label": k, "value": val_str})
             render_metric_grid(m_cards[:4])
 
     # Navigation Footer
     render_step_navigation(
         prev_page="pages/10_Visualization.py",
         next_page="pages/12_Evaluation.py",
-        prev_label="← Visual Analytics",
-        next_label="Model Diagnostics & Live Testing Studio →"
+        prev_label="Visual Analytics",
+        next_label="Model Evaluation & Live Testing"
     )
 
 

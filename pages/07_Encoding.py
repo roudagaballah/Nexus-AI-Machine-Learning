@@ -26,13 +26,13 @@ def main():
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
     render_hero(
-        badge="● VECTORIZATION PROTOCOL",
+        badge="Feature Engineering",
         title="Categorical Encoding Studio",
         subtitle="Transform non-numerical features into mathematical vectors tailored for machine learning models."
     )
 
     if not cat_cols:
-        st.success("✓ All features in the active dataset are already numerical! No encoding required.")
+        st.success("All features in the active dataset are already numerical. No encoding required.")
         render_step_navigation(prev_page="pages/06_Outliers.py", next_page="pages/08_Feature_Engineering.py")
         return
 
@@ -41,10 +41,10 @@ def main():
     binary_count = sum(df[c].nunique() == 2 for c in cat_cols)
 
     metrics = [
-        {"icon": "🏷️", "label": "Categorical Features", "value": f"{len(cat_cols)}", "sub": f"Out of {t['cols']} features"},
-        {"icon": "⚖️", "label": "Binary Features", "value": f"{binary_count}", "sub": "Exactly 2 classes"},
-        {"icon": "⚠️", "label": "High Cardinality", "value": f"{high_card_count}", "sub": ">15 unique classes", "delta_type": "neg" if high_card_count > 0 else "pos"},
-        {"icon": "⚡", "label": "Encoding Status", "value": "Encoded" if st.session_state.get("encoding_done") else "Pending", "sub": "Pipeline stage 07", "delta_type": "pos"},
+        {"icon": "layers", "label": "Categorical Features", "value": f"{len(cat_cols)}", "sub": f"Out of {t['cols']} features"},
+        {"icon": "target", "label": "Binary Features", "value": f"{binary_count}", "sub": "Exactly 2 distinct classes"},
+        {"icon": "alert-triangle", "label": "High Cardinality", "value": f"{high_card_count}", "sub": ">15 unique classes", "delta_type": "neg" if high_card_count > 0 else "pos"},
+        {"icon": "activity", "label": "Encoding Status", "value": "Encoded" if st.session_state.get("encoding_done") else "Pending", "sub": "Pipeline stage 07", "delta_type": "pos"},
     ]
     render_metric_grid(metrics)
 
@@ -53,7 +53,7 @@ def main():
         render_section_header("01", "Feature Encoding Configuration Matrix")
         render_html(
             """
-            <div style="color: #94A3B8; font-size: 14px; margin-bottom: 15px;">
+            <div style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 14px;">
                 Review automated recommendations or manually configure vectorization strategies for each feature:
             </div>
             """
@@ -97,13 +97,13 @@ def main():
                 decisions[col] = strategy_key
 
         render_html("<br>")
-        if st.button("⚡ EXECUTE ENCODING PIPELINE", use_container_width=True, key="btn_apply_encoding"):
+        if st.button("Apply Categorical Encoding", use_container_width=True, key="btn_apply_encoding"):
             df_encoded, encoders_dict = apply_categorical_encoding(df, decisions)
             st.session_state.encoding_done = True
             if st.session_state.get("preprocessing_pipeline"):
                 st.session_state.preprocessing_pipeline.record_encoding(decisions, encoders_dict)
             set_active_data(df_encoded, stage_name="Encoding", log_entry=f"Encoded {len(decisions)} categorical features: {decisions}.")
-            st.success(f"✓ Successfully encoded {len(decisions)} categorical features into {df_encoded.shape[1]} numeric columns!")
+            st.success(f"Successfully encoded {len(decisions)} categorical features into {df_encoded.shape[1]} numeric columns.")
             st.rerun()
 
     # Transformed Preview & Before/After
@@ -117,8 +117,8 @@ def main():
     render_step_navigation(
         prev_page="pages/06_Outliers.py",
         next_page="pages/08_Feature_Engineering.py",
-        prev_label="← Outlier Treatment",
-        next_label="Feature Engineering & Selection →"
+        prev_label="Outlier Detection",
+        next_label="Feature Engineering & PCA"
     )
 
 

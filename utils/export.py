@@ -68,7 +68,7 @@ def generate_audit_report() -> str:
     metrics = st.session_state.get("evaluation_metrics", {})
     logs = st.session_state.get("transformation_log", [])
 
-    report = f"""# ⚡ NEXUS AI — COMPREHENSIVE MACHINE LEARNING AUDIT REPORT
+    report = f"""# Nexus AI — Machine Learning Pipeline Audit Report
 Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 Platform Version: Nexus AI Studio v3.0
 

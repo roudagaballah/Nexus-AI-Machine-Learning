@@ -18,9 +18,9 @@ def main():
 
     # Hero Banner
     render_hero(
-        badge="● EXECUTIVE COMMAND CENTER",
-        title="Nexus AI Analytics Hub",
-        subtitle="End-to-end autonomous data intelligence, preprocessing pipeline telemetry, and machine learning orchestration."
+        badge="Executive Overview",
+        title="Machine Learning Studio & Analytics Hub",
+        subtitle="End-to-end autonomous data intelligence, preprocessing telemetry, and model lifecycle management."
     )
 
     df = get_active_data()
@@ -32,17 +32,17 @@ def main():
     # Top KPI Metrics Grid
     if df is not None:
         metrics = [
-            {"icon": "🧬", "label": "Observations", "value": f"{t['rows']:,}", "sub": "Total Data Rows", "delta": "+Active", "delta_type": "pos"},
-            {"icon": "📊", "label": "Features", "value": f"{t['cols']:,}", "sub": f"{t['numeric_count']} Num | {t['categorical_count']} Cat"},
-            {"icon": "🩹", "label": "Missing Cells", "value": f"{t['missing_pct']:.1f}%", "sub": f"{t['missing_count']:,} Nulls", "delta_type": "neg" if t['missing_pct'] > 0 else "pos"},
-            {"icon": "⚡", "label": "Pipeline Progress", "value": f"{progress_pct}%", "sub": f"{done_count}/{len(stages)} Stages Completed", "delta": f"Step {done_count+1}", "delta_type": "pos"},
+            {"icon": "database", "label": "Total Observations", "value": f"{t['rows']:,}", "sub": "Active records in memory", "delta": "Active", "delta_type": "pos"},
+            {"icon": "table", "label": "Feature Space", "value": f"{t['cols']:,}", "sub": f"{t['numeric_count']} Numeric · {t['categorical_count']} Categorical"},
+            {"icon": "alert-triangle", "label": "Missing Value Rate", "value": f"{t['missing_pct']:.1f}%", "sub": f"{t['missing_count']:,} null cells", "delta_type": "neg" if t['missing_pct'] > 0 else "pos"},
+            {"icon": "activity", "label": "Pipeline Progress", "value": f"{progress_pct}%", "sub": f"{done_count} of {len(stages)} stages completed", "delta": f"Step {done_count+1}", "delta_type": "pos"},
         ]
     else:
         metrics = [
-            {"icon": "📡", "label": "Connection", "value": "Awaiting", "sub": "No Dataset Connected"},
-            {"icon": "📊", "label": "Features", "value": "0", "sub": "Ready for upload"},
-            {"icon": "🩹", "label": "Quality Score", "value": "--", "sub": "Pending upload"},
-            {"icon": "⚡", "label": "Pipeline Progress", "value": "0%", "sub": "Upload dataset to start"},
+            {"icon": "database", "label": "Dataset Connection", "value": "Awaiting Ingestion", "sub": "No dataset loaded in memory"},
+            {"icon": "table", "label": "Feature Space", "value": "0", "sub": "Ready for upload"},
+            {"icon": "shield", "label": "Quality Score", "value": "N/A", "sub": "Pending dataset upload"},
+            {"icon": "activity", "label": "Pipeline Progress", "value": "0%", "sub": "Upload data to begin"},
         ]
 
     render_metric_grid(metrics)
@@ -50,29 +50,29 @@ def main():
     # Quick Start or Active Dataset Card
     if df is None:
         with st.container(border=True):
-            render_section_header("01", "Fast Start Ingestion")
+            render_section_header("01", "Fast-Start Benchmark Datasets")
             render_html(
                 """
-                <div style="color: #94A3B8; font-size: 14px; margin-bottom: 15px;">
-                    No active dataset detected in memory. Upload your CSV/Excel file or choose an instant preloaded benchmark dataset.
+                <div style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 14px;">
+                    No active dataset detected in memory. Upload your CSV/Excel file or initialize with an instant benchmark dataset:
                 </div>
                 """
             )
             c1, c2, c3, c4 = st.columns(4)
             with c1:
-                if st.button("🌸 Load Iris Flowers", use_container_width=True):
+                if st.button("Iris Flowers (Classification)", use_container_width=True):
                     load_sample_dataset("iris")
                     st.rerun()
             with c2:
-                if st.button("🚢 Load Titanic Survival", use_container_width=True):
+                if st.button("Titanic Survival (Classification)", use_container_width=True):
                     load_sample_dataset("titanic")
                     st.rerun()
             with c3:
-                if st.button("🍷 Load Wine Quality", use_container_width=True):
+                if st.button("Wine Quality (Classification)", use_container_width=True):
                     load_sample_dataset("wine")
                     st.rerun()
             with c4:
-                if st.button("🏠 Load California Housing", use_container_width=True):
+                if st.button("California Housing (Regression)", use_container_width=True):
                     load_sample_dataset("california")
                     st.rerun()
 
@@ -82,18 +82,18 @@ def main():
             render_section_header("01", "Dataset Health & Readiness Index")
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Health Score", f"{t['health_score']}/100", delta="Ready" if t['health_score'] >= 80 else "Needs Cleaning")
-            c2.metric("Duplicate Rows", f"{t['duplicate_count']:,}", delta=f"{t['duplicate_pct']:.1f}% of data", delta_color="inverse")
-            c3.metric("Memory Footprint", f"{t['memory_mb']:.2f} MB")
+            c2.metric("Duplicate Rows", f"{t['duplicate_count']:,}", delta=f"{t['duplicate_pct']:.1f}% rate", delta_color="inverse")
+            c3.metric("Memory Usage", f"{t['memory_mb']:.2f} MB")
             c4.metric("Active Model", st.session_state.get("model_name", "None"))
 
     # Interactive Pipeline Stages Grid
     render_html("<br>")
     with st.container(border=True):
-        render_section_header("02", "Autonomous Workflow Architecture")
+        render_section_header("02", "Pipeline Stages & Workflow Progression")
         render_html(
             """
-            <div style="color: #94A3B8; font-size: 14px; margin-bottom: 18px;">
-                Interactive status matrix across the 12 pipeline modules. Click any stage to jump directly into the workspace.
+            <div style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 16px;">
+                Status matrix across the 12 workflow stages. Click any stage to open its dedicated workspace:
             </div>
             """
         )
@@ -102,16 +102,16 @@ def main():
         for idx, stage in enumerate(stages):
             col = cols[idx % 4]
             with col:
-                status_icon = "✓ Done" if stage["done"] else "○ Pending"
-                status_color = "#34D399" if stage["done"] else "#64748B"
+                status_text = "Completed" if stage["done"] else "Pending"
+                status_color = "var(--success)" if stage["done"] else "var(--text-muted)"
+                status_bg = "var(--success-subtle)" if stage["done"] else "var(--bg-surface-elevated)"
                 render_html(
                     f"""
-                    <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 14px; margin-bottom: 12px; transition: 0.2s;">
+                    <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size: 20px;">{stage['icon']}</span>
-                            <span style="color: {status_color}; font-size: 11px; font-weight: 700; text-transform: uppercase;">{status_icon}</span>
+                            <span style="font-weight: 600; font-size: 13px; color: var(--text-primary);">{stage['name']}</span>
+                            <span style="color: {status_color}; background: {status_bg}; padding: 1px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 600; text-transform: uppercase;">{status_text}</span>
                         </div>
-                        <div style="color:#FFFFFF; font-weight:700; font-size:14px; margin-top:8px;">{stage['name']}</div>
                     </div>
                     """
                 )
@@ -122,7 +122,7 @@ def main():
     render_step_navigation(
         prev_page=None,
         next_page="pages/02_Upload.py",
-        next_label="Begin Ingestion →"
+        next_label="Begin Ingestion"
     )
 
 

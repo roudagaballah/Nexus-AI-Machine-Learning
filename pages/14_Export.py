@@ -1,5 +1,5 @@
 """
-Nexus AI — Page 13: Export Center & AI Analysis Audit Report
+Nexus AI — Page 14: Export Center & AI Analysis Audit Report
 ------------------------------------------------------------
 Multi-format downloads for processed datasets (CSV, Excel), predictions,
 model metrics (JSON), full AI Audit Reports, and serialized model binaries.
@@ -30,17 +30,17 @@ def main():
     imp_df = st.session_state.get("feature_importance_df")
 
     render_hero(
-        badge="● EXPORT CENTER & AUDIT",
-        title="AI Analysis Summary & Export Hub",
+        badge="Artifacts & Export",
+        title="Artifact Export Center & Audit Reporting",
         subtitle="Export transformed datasets, model predictions, evaluation benchmarks, full audit reports, and serialized model binaries."
     )
 
     # Top KPI Metrics Grid
     metrics_cards = [
-        {"icon": "🧬", "label": "Processed Rows", "value": f"{t['rows']:,}", "sub": f"{t['cols']} total features"},
-        {"icon": "🩹", "label": "Missing Values", "value": f"{t['missing_count']:,}", "sub": f"{t['missing_pct']:.1f}% null rate", "delta_type": "pos"},
-        {"icon": "🤖", "label": "Trained Architecture", "value": str(model_name)[:16], "sub": st.session_state.get("problem_type", "ML")},
-        {"icon": "💾", "label": "Artifact Hub", "value": "Ready", "sub": "Multi-format download", "delta_type": "pos"},
+        {"icon": "table", "label": "Processed Rows", "value": f"{t['rows']:,}", "sub": f"{t['cols']} total features"},
+        {"icon": "shield", "label": "Missing Values", "value": f"{t['missing_count']:,}", "sub": f"{t['missing_pct']:.1f}% null rate", "delta_type": "pos"},
+        {"icon": "cpu", "label": "Model Architecture", "value": str(model_name)[:16], "sub": st.session_state.get("problem_type", "ML")},
+        {"icon": "download", "label": "Artifact Hub", "value": "Ready", "sub": "Multi-format downloads", "delta_type": "pos"},
     ]
     render_metric_grid(metrics_cards)
 
@@ -53,8 +53,8 @@ def main():
             render_section_header("01", "Processed Dataset Exports")
             render_html(
                 f"""
-                <div style="color: #94A3B8; font-size: 13px; margin-bottom: 14px;">
-                    Download the final preprocessed, cleaned, encoded, and scaled dataset ({t['rows']:,} rows × {t['cols']} columns):
+                <div style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 14px;">
+                    Download the preprocessed, cleaned, encoded, and scaled dataset ({t['rows']:,} rows × {t['cols']} columns):
                 </div>
                 """
             )
@@ -63,7 +63,7 @@ def main():
             with c_d1:
                 csv_data = to_csv_bytes(df)
                 st.download_button(
-                    label="📥 Download CSV",
+                    label="Download CSV",
                     data=csv_data,
                     file_name=f"{dataset_name}_processed.csv",
                     mime="text/csv",
@@ -74,7 +74,7 @@ def main():
                 try:
                     excel_data = to_excel_bytes(df)
                     st.download_button(
-                        label="📥 Download Excel (.xlsx)",
+                        label="Download Excel (.xlsx)",
                         data=excel_data,
                         file_name=f"{dataset_name}_processed.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -87,11 +87,11 @@ def main():
     # 2. Predictions Downloads
     with col_exp2:
         with st.container(border=True):
-            render_section_header("02", "Predictions & Test Results")
+            render_section_header("02", "Predictions & Holdout Results")
             if pred_df is not None:
                 render_html(
                     f"""
-                    <div style="color: #94A3B8; font-size: 13px; margin-bottom: 14px;">
+                    <div style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 14px;">
                         Download model holdout test predictions and classification/regression telemetry ({len(pred_df):,} samples):
                     </div>
                     """
@@ -100,7 +100,7 @@ def main():
                 with c_p1:
                     pred_csv = to_csv_bytes(pred_df)
                     st.download_button(
-                        label="📥 Download Predictions (CSV)",
+                        label="Download Predictions (CSV)",
                         data=pred_csv,
                         file_name=f"{dataset_name}_predictions.csv",
                         mime="text/csv",
@@ -111,7 +111,7 @@ def main():
                     try:
                         pred_xlsx = to_excel_bytes(pred_df)
                         st.download_button(
-                            label="📥 Download Predictions (Excel)",
+                            label="Download Predictions (Excel)",
                             data=pred_xlsx,
                             file_name=f"{dataset_name}_predictions.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -121,7 +121,7 @@ def main():
                     except Exception as e:
                         st.caption(f"Excel export note: {e}")
             else:
-                st.info("ℹ️ Train a model in the Modeling Studio to generate downloadable predictions.")
+                st.info("Train a model in the Modeling Studio to generate downloadable predictions.")
 
     # 3. Model Binary & Metrics
     render_html("<br>")
@@ -129,11 +129,11 @@ def main():
 
     with col_mod1:
         with st.container(border=True):
-            render_section_header("03", "Serialized Model & Weights")
+            render_section_header("03", "Serialized Model Artifact")
             if model is not None:
                 render_html(
                     """
-                    <div style="color: #94A3B8; font-size: 13px; margin-bottom: 14px;">
+                    <div style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 14px;">
                         Export the trained Scikit-Learn / XGBoost model artifact for Python production deployment:
                     </div>
                     """
@@ -141,7 +141,7 @@ def main():
                 try:
                     joblib_bytes = to_joblib_bytes(model)
                     st.download_button(
-                        label=f"📦 Download Model ({model_name}.joblib)",
+                        label=f"Download Model ({model_name}.joblib)",
                         data=joblib_bytes,
                         file_name=f"{dataset_name}_{model_name.lower().replace(' ', '_')}.joblib",
                         mime="application/octet-stream",
@@ -151,15 +151,15 @@ def main():
                 except Exception as e:
                     st.error(f"Failed to serialize model: {e}")
             else:
-                st.info("ℹ️ Train a model in the Modeling Studio to enable model binary download.")
+                st.info("Train a model in the Modeling Studio to enable model binary download.")
 
     with col_mod2:
         with st.container(border=True):
-            render_section_header("04", "Evaluation Metrics & Parameters (JSON)")
+            render_section_header("04", "Evaluation Metrics & Configuration (JSON)")
             if metrics:
                 render_html(
                     """
-                    <div style="color: #94A3B8; font-size: 13px; margin-bottom: 14px;">
+                    <div style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 14px;">
                         Download comprehensive performance metrics and model hyperparameters in structured JSON format:
                     </div>
                     """
@@ -180,7 +180,7 @@ def main():
 
                 json_bytes = to_json_bytes(json_payload)
                 st.download_button(
-                    label="📄 Download Metrics JSON",
+                    label="Download Metrics JSON",
                     data=json_bytes,
                     file_name=f"{dataset_name}_metrics.json",
                     mime="application/json",
@@ -188,43 +188,43 @@ def main():
                     key="btn_dl_json"
                 )
             else:
-                st.info("ℹ️ Evaluation metrics will be available once model evaluation is complete.")
+                st.info("Evaluation metrics will be available once model evaluation is complete.")
 
     # 4. Comprehensive AI Audit Report
     render_html("<br>")
     with st.container(border=True):
-        render_section_header("05", "Comprehensive AI Analysis Audit Report")
+        render_section_header("05", "Comprehensive Pipeline Audit Report")
         report_text = generate_audit_report()
 
         c_rep1, c_rep2 = st.columns([1, 1])
         with c_rep1:
             st.download_button(
-                label="📄 Download Audit Report (Markdown)",
+                label="Download Audit Report (Markdown)",
                 data=report_text.encode("utf-8"),
-                file_name=f"{dataset_name}_AI_Audit_Report.md",
+                file_name=f"{dataset_name}_Audit_Report.md",
                 mime="text/markdown",
                 use_container_width=True,
                 key="btn_dl_rep_md"
             )
         with c_rep2:
             st.download_button(
-                label="📄 Download Audit Report (Plain Text)",
+                label="Download Audit Report (Plain Text)",
                 data=report_text.encode("utf-8"),
-                file_name=f"{dataset_name}_AI_Audit_Report.txt",
+                file_name=f"{dataset_name}_Audit_Report.txt",
                 mime="text/plain",
                 use_container_width=True,
                 key="btn_dl_rep_txt"
             )
 
-        with st.expander("👁️ Live Preview: AI Audit Report", expanded=False):
+        with st.expander("Preview Pipeline Audit Report", expanded=False):
             st.markdown(report_text)
 
     # Navigation Footer
     render_step_navigation(
         prev_page="pages/12_Evaluation.py",
         next_page="pages/01_Dashboard.py",
-        prev_label="← Model Evaluation & Testing",
-        next_label="Return to Dashboard 🚀"
+        prev_label="Model Evaluation & Testing",
+        next_label="Return to Dashboard"
     )
 
 

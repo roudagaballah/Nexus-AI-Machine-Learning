@@ -27,27 +27,27 @@ def main():
     num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     render_hero(
-        badge="● TRANSFORMATION PROTOCOL",
-        title="Feature Engineering & Dimensionality",
+        badge="Feature Engineering",
+        title="Feature Engineering & Dimensionality Reduction",
         subtitle="Apply nonlinear feature conditioning, polynomial expansion, PCA projection, and RFE feature selection."
     )
 
     # Top KPI Metrics
     selected_feats = st.session_state.get("selected_features", [])
     metrics = [
-        {"icon": "📊", "label": "Active Features", "value": f"{t['cols']}", "sub": f"{len(num_cols)} numerical"},
-        {"icon": "🎯", "label": "Selected Subset", "value": f"{len(selected_feats) if selected_feats else t['cols']}", "sub": "Features for modeling"},
-        {"icon": "🧬", "label": "Observations", "value": f"{t['rows']:,}", "sub": "Active row count"},
-        {"icon": "⚡", "label": "Engineering Status", "value": "Applied" if st.session_state.get("feature_eng_done") else "Ready", "sub": "Pipeline stage 08", "delta_type": "pos"},
+        {"icon": "table", "label": "Active Features", "value": f"{t['cols']}", "sub": f"{len(num_cols)} numerical features"},
+        {"icon": "target", "label": "Selected Subset", "value": f"{len(selected_feats) if selected_feats else t['cols']}", "sub": "Features for modeling"},
+        {"icon": "database", "label": "Total Observations", "value": f"{t['rows']:,}", "sub": "Active record count"},
+        {"icon": "activity", "label": "Engineering Status", "value": "Applied" if st.session_state.get("feature_eng_done") else "Ready", "sub": "Pipeline stage 08", "delta_type": "pos"},
     ]
     render_metric_grid(metrics)
 
     # Tabs for Engineering
     tab_math, tab_poly, tab_pca, tab_rfe_smote = st.tabs([
-        "📈 Math Transformations",
-        "✖️ Polynomial Features",
-        "🌌 Principal Component Analysis (PCA)",
-        "🎯 Feature Selection & SMOTE",
+        "Mathematical Transformations",
+        "Polynomial Features",
+        "Principal Component Analysis (PCA)",
+        "Feature Selection & Class Balancing",
     ])
 
     # 1. Math Transforms
@@ -55,7 +55,7 @@ def main():
         render_section_header("01", "Nonlinear Transformations")
         render_html(
             """
-            <div style="color: #94A3B8; font-size: 14px; margin-bottom: 14px;">
+            <div style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 14px;">
                 Condense skewness and stabilize variance for continuous numerical distributions:
             </div>
             """
@@ -64,14 +64,14 @@ def main():
         c_m1, c_m2 = st.columns(2)
         with c_m1:
             trans_method = st.selectbox(
-                "Select Transformation Algorithm:",
+                "Transformation Algorithm:",
                 ["Log1p (Safe Logarithm with Auto-Shift)", "Box-Cox (Strict Power Transform)", "Yeo-Johnson (Supports Positive and Negative)"],
                 key="math_trans_method"
             )
         with c_m2:
             target_math_cols = st.multiselect("Select Target Features:", num_cols, default=num_cols[:3] if num_cols else [], key="math_trans_cols")
 
-        if st.button("⚡ APPLY MATHEMATICAL TRANSFORMATION", use_container_width=True, key="btn_apply_math_trans"):
+        if st.button("Apply Mathematical Transformation", use_container_width=True, key="btn_apply_math_trans"):
             if not target_math_cols:
                 st.error("Please select at least one feature.")
             else:
@@ -86,7 +86,7 @@ def main():
                 if st.session_state.get("preprocessing_pipeline"):
                     st.session_state.preprocessing_pipeline.record_math_transforms(m_code, target_math_cols, trans_dict)
                 set_active_data(df_trans, stage_name="Feature Engineering", log_entry=f"Applied {trans_method} to: {', '.join(target_math_cols)}")
-                st.success(f"✓ Applied {trans_method} to {len(target_math_cols)} features!")
+                st.success(f"Applied {trans_method} to {len(target_math_cols)} features.")
                 st.rerun()
 
     # 2. Polynomial Features
@@ -100,7 +100,7 @@ def main():
             interaction_only = st.checkbox("Interaction terms only (exclude single-feature powers)", value=False)
             include_bias = st.checkbox("Include bias / intercept column", value=False)
 
-        if st.button("⚡ GENERATE POLYNOMIAL EXPANSION", use_container_width=True, key="btn_apply_poly"):
+        if st.button("Generate Polynomial Expansion", use_container_width=True, key="btn_apply_poly"):
             if not poly_cols:
                 st.error("Please select at least one feature.")
             else:
@@ -110,10 +110,10 @@ def main():
                     if poly_obj is not None and st.session_state.get("preprocessing_pipeline"):
                         st.session_state.preprocessing_pipeline.record_polynomial(poly_obj, poly_cols)
                     set_active_data(df_poly, stage_name="Feature Engineering", log_entry=f"Generated degree-{poly_degree} polynomial features for: {', '.join(poly_cols)}")
-                    st.success(f"✓ Expanded feature space to {df_poly.shape[1]} columns!")
+                    st.success(f"Expanded feature space to {df_poly.shape[1]} columns.")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"❌ Expansion error: {e}")
+                    st.error(f"Expansion error: {e}")
 
     # 3. PCA
     with tab_pca:
@@ -123,14 +123,14 @@ def main():
             pca_target_cols = st.multiselect("Select Numerical Features for PCA:", num_cols, default=num_cols, key="pca_features_select")
             standardize_pca = st.checkbox("Standardize features before PCA (Recommended)", value=True)
         with c_pca2:
-            pca_mode = st.radio("PCA Reduction Mode:", ["Explained Variance Ratio Threshold (e.g. 95%)", "Fixed Number of Components (e.g. 2 or 3)"])
+            pca_mode = st.radio("Reduction Mode:", ["Explained Variance Ratio Threshold (e.g. 95%)", "Fixed Number of Components (e.g. 2 or 3)"])
             if "Variance" in pca_mode:
                 var_threshold = st.slider("Target Cumulative Explained Variance:", 0.50, 0.99, 0.95, step=0.01)
                 n_comp = var_threshold
             else:
                 n_comp = st.slider("Number of Principal Components (k):", 2, max(2, len(pca_target_cols)), 3)
 
-        if st.button("⚡ EXECUTE PCA DIMENSIONALITY REDUCTION", use_container_width=True, key="btn_apply_pca"):
+        if st.button("Execute PCA Dimensionality Reduction", use_container_width=True, key="btn_apply_pca"):
             if len(pca_target_cols) < 2:
                 st.error("PCA requires at least 2 numerical features.")
             else:
@@ -140,10 +140,10 @@ def main():
                     if st.session_state.get("preprocessing_pipeline"):
                         st.session_state.preprocessing_pipeline.record_pca(pca_model, pca_scaler, pca_target_cols)
                     set_active_data(df_pca, stage_name="PCA", log_entry=f"Applied PCA: reduced {len(pca_target_cols)} features to {pca_model.n_components_} components (Cumulative Var: {var_ratios.sum()*100:.1f}%).")
-                    st.success(f"✓ PCA complete! Created {pca_model.n_components_} Principal Components explaining {var_ratios.sum()*100:.1f}% of variance.")
+                    st.success(f"PCA complete. Created {pca_model.n_components_} Principal Components explaining {var_ratios.sum()*100:.1f}% of variance.")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"❌ PCA error: {e}")
+                    st.error(f"PCA error: {e}")
 
     # 4. RFE & SMOTE
     with tab_rfe_smote:
@@ -151,13 +151,13 @@ def main():
         c_rf1, c_rf2 = st.columns(2)
 
         with c_rf1:
-            st.markdown("#### 🎯 Recursive Feature Elimination (RFE)")
+            st.markdown("##### Recursive Feature Elimination (RFE)")
             target_candidates = df.columns.tolist()
-            selected_target = st.selectbox("Select Target Variable (Y):", target_candidates, index=len(target_candidates)-1, key="rfe_target_select")
+            selected_target = st.selectbox("Target Variable (Y):", target_candidates, index=len(target_candidates)-1, key="rfe_target_select")
             available_features = [c for c in num_cols if c != selected_target]
             n_rfe_feats = st.slider("Target Number of Features to Keep:", 1, max(1, len(available_features)), min(5, len(available_features)))
 
-            if st.button("🎯 RUN RFE FEATURE SELECTION", use_container_width=True, key="btn_run_rfe"):
+            if st.button("Run RFE Feature Selection", use_container_width=True, key="btn_run_rfe"):
                 if not available_features:
                     st.error("No valid features for RFE.")
                 else:
@@ -168,20 +168,20 @@ def main():
                         X_sel, sel_cols, _ = apply_rfe_selection(X_in, y_in, n_features=n_rfe_feats, problem_type=prob_type)
                         st.session_state.selected_features = sel_cols
                         st.session_state.target_column = selected_target
-                        st.success(f"✓ RFE selected {len(sel_cols)} features: {', '.join(sel_cols)}")
+                        st.success(f"RFE selected {len(sel_cols)} features: {', '.join(sel_cols)}")
                     except Exception as e:
-                        st.error(f"❌ RFE Error: {e}")
+                        st.error(f"RFE Error: {e}")
 
         with c_rf2:
-            st.markdown("#### ⚖️ Handle Class Imbalance (SMOTE)")
-            class_target = st.selectbox("Select Classification Target:", df.columns.tolist(), index=len(df.columns)-1, key="smote_target_select")
+            st.markdown("##### Handle Class Imbalance (SMOTE)")
+            class_target = st.selectbox("Classification Target:", df.columns.tolist(), index=len(df.columns)-1, key="smote_target_select")
             y_target = df[class_target]
             counts = y_target.value_counts()
-            st.write("Current Class Distribution:")
+            st.caption("Current Class Distribution:")
             st.dataframe(counts.rename("Count"), use_container_width=True)
 
             smote_method = st.radio("Sampling Method:", ["SMOTE (Synthetic Minority Oversampling)", "Random Under-Sampling"])
-            if st.button("⚡ BALANCE DATASET", use_container_width=True, key="btn_apply_smote"):
+            if st.button("Balance Dataset Classes", use_container_width=True, key="btn_apply_smote"):
                 try:
                     num_feats = [c for c in num_cols if c != class_target]
                     if not num_feats:
@@ -193,10 +193,10 @@ def main():
                         df_balanced = pd.concat([X_res, y_res], axis=1)
                         st.session_state.imbalance_done = True
                         set_active_data(df_balanced, stage_name="Balancing", log_entry=f"Balanced class distribution using {smote_method}. Final shape: {df_balanced.shape}.")
-                        st.success(f"✓ Balanced dataset! New shape: {df_balanced.shape[0]:,} rows.")
+                        st.success(f"Balanced dataset. New shape: {df_balanced.shape[0]:,} rows.")
                         st.rerun()
                 except Exception as e:
-                    st.error(f"❌ Balancing error: {e}")
+                    st.error(f"Balancing error: {e}")
 
     # Before / After Matrix
     orig_df = st.session_state.get("original_data")
@@ -209,8 +209,8 @@ def main():
     render_step_navigation(
         prev_page="pages/07_Encoding.py",
         next_page="pages/09_Scaling.py",
-        prev_label="← Categorical Encoding",
-        next_label="Feature Normalization & Scaling →"
+        prev_label="Categorical Encoding",
+        next_label="Feature Scaling"
     )
 
 

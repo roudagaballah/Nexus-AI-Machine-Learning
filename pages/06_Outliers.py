@@ -27,34 +27,34 @@ def main():
     num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     render_hero(
-        badge="● ANOMALY PROTOCOL",
+        badge="Data Preprocessing",
         title="Outlier Detection & Conditioning",
         subtitle="Detect extreme anomalies and apply boundary clipping, statistical winsorization, or observation filtering."
     )
 
     if not num_cols:
-        st.warning("⚠️ No numerical columns available in active dataset for outlier processing.")
+        st.warning("No numerical columns available in the active dataset for outlier processing.")
         render_step_navigation(prev_page="pages/05_Missing_Values.py", next_page="pages/07_Encoding.py")
         return
 
     # Top KPI Metrics
     metrics = [
-        {"icon": "🔢", "label": "Numerical Features", "value": f"{len(num_cols)}", "sub": "Eligible for outlier analysis"},
-        {"icon": "🧬", "label": "Active Observations", "value": f"{t['rows']:,}", "sub": "Dataset length"},
-        {"icon": "📊", "label": "Memory Footprint", "value": f"{t['memory_mb']:.2f} MB"},
-        {"icon": "⚡", "label": "Outliers Status", "value": "Treated" if st.session_state.get("outliers_done") else "Ready", "sub": "Pipeline stage 06", "delta_type": "pos"},
+        {"icon": "hash", "label": "Numerical Features", "value": f"{len(num_cols)}", "sub": "Eligible for outlier analysis"},
+        {"icon": "database", "label": "Active Observations", "value": f"{t['rows']:,}", "sub": "Dataset record count"},
+        {"icon": "bar-chart", "label": "Memory Footprint", "value": f"{t['memory_mb']:.2f} MB"},
+        {"icon": "activity", "label": "Outliers Status", "value": "Treated" if st.session_state.get("outliers_done") else "Ready", "sub": "Pipeline stage 06", "delta_type": "pos"},
     ]
     render_metric_grid(metrics)
 
     # Visual Outlier Inspection
     with st.container(border=True):
-        render_section_header("01", "Visual Distribution & Anomaly Inspector")
+        render_section_header("01", "Distribution & Outlier Inspection")
         c_sel1, c_sel2 = st.columns(2)
         with c_sel1:
             selected_inspect_col = st.selectbox("Select Feature to Inspect:", num_cols, key="outlier_inspect_col")
         with c_sel2:
             cat_opts = ["None"] + df.select_dtypes(include=["object", "category"]).columns.tolist()
-            color_group_col = st.selectbox("Optional Color Segment:", cat_opts, key="outlier_inspect_color")
+            color_group_col = st.selectbox("Optional Color Segmentation:", cat_opts, key="outlier_inspect_color")
 
         c_plot1, c_plot2 = st.columns(2)
         with c_plot1:
@@ -89,7 +89,7 @@ def main():
             action_val = "clip" if "Clip" in action else "remove"
 
         with col_conf2:
-            target_cols = st.multiselect("Select Target Numerical Features:", num_cols, default=num_cols, key="outlier_target_cols")
+            target_cols = st.multiselect("Select Target Features:", num_cols, default=num_cols, key="outlier_target_cols")
 
             factor = 1.5
             lower_pct = 0.05
@@ -107,7 +107,7 @@ def main():
             elif "Isolation" in method:
                 contamination = st.slider("Expected Contamination Rate:", 0.01, 0.20, 0.05, step=0.01)
 
-        if st.button("⚡ EXECUTE OUTLIER TREATMENT", use_container_width=True, key="btn_apply_outliers"):
+        if st.button("Apply Outlier Treatment", use_container_width=True, key="btn_apply_outliers"):
             if not target_cols:
                 st.error("Please select at least one feature.")
             else:
@@ -135,7 +135,7 @@ def main():
                     st.session_state.preprocessing_pipeline.record_outlier_bounds(bounds_dict)
 
                 set_active_data(df_treated, stage_name="Outliers", log_entry=f"Treated outliers on {len(target_cols)} features using {method} (action: {action_val}). Affected points: {count_outliers:,}.")
-                st.success(f"✓ Outlier treatment applied! ({count_outliers:,} points adjusted/removed)")
+                st.success(f"Outlier treatment applied successfully ({count_outliers:,} points adjusted/removed).")
                 st.rerun()
 
     # Before / After Matrix
@@ -149,8 +149,8 @@ def main():
     render_step_navigation(
         prev_page="pages/05_Missing_Values.py",
         next_page="pages/07_Encoding.py",
-        prev_label="← Missing Values",
-        next_label="Categorical Encoding Studio →"
+        prev_label="Missing Values",
+        next_label="Categorical Encoding"
     )
 
 

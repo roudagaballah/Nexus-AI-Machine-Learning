@@ -25,17 +25,17 @@ def main():
     t = get_dataset_telemetry(df)
 
     render_hero(
-        badge="● EXPLORATORY AUDIT",
-        title="Dataset Deep Inspection & Profiling",
-        subtitle="Deep statistical profiling, feature cardinality introspection, distribution characteristics, and quality alerts."
+        badge="Exploratory Audit",
+        title="Dataset Inspection & Statistical Profiling",
+        subtitle="Deep statistical profiling, feature cardinality introspection, distribution characteristics, and quality assessment."
     )
 
     # Top KPI Metrics
     metrics = [
-        {"icon": "🧬", "label": "Total Samples", "value": f"{t['rows']:,}", "sub": f"{t['memory_mb']:.2f} MB memory"},
-        {"icon": "🔢", "label": "Numerical", "value": f"{t['numeric_count']}", "sub": "Continuous & discrete"},
-        {"icon": "🏷️", "label": "Categorical", "value": f"{t['categorical_count']}", "sub": "Text & categories"},
-        {"icon": "🩺", "label": "Health Index", "value": f"{t['health_score']}/100", "sub": "Data readiness rating", "delta_type": "pos" if t['health_score'] >= 80 else "neg"},
+        {"icon": "database", "label": "Total Observations", "value": f"{t['rows']:,}", "sub": f"{t['memory_mb']:.2f} MB in memory"},
+        {"icon": "hash", "label": "Numerical Features", "value": f"{t['numeric_count']}", "sub": "Continuous and discrete"},
+        {"icon": "layers", "label": "Categorical Features", "value": f"{t['categorical_count']}", "sub": "Nominal and ordinal"},
+        {"icon": "shield", "label": "Health Index", "value": f"{t['health_score']}/100", "sub": "Data readiness rating", "delta_type": "pos" if t['health_score'] >= 80 else "neg"},
     ]
     render_metric_grid(metrics)
 
@@ -43,7 +43,7 @@ def main():
     num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     cat_cols = df.select_dtypes(include=["object", "category"]).columns.tolist()
 
-    tab_num, tab_cat, tab_quality = st.tabs(["🔢 Numerical Profiles", "🏷️ Categorical Profiles", "🩺 Data Quality Checklist"])
+    tab_num, tab_cat, tab_quality = st.tabs(["Numerical Profiles", "Categorical Profiles", "Data Quality Checklist"])
 
     with tab_num:
         if num_cols:
@@ -54,7 +54,7 @@ def main():
             desc_df = desc_df.round(3)
             st.dataframe(desc_df, use_container_width=True)
         else:
-            st.info("ℹ️ No numerical columns detected in this dataset.")
+            st.info("No numerical columns detected in this dataset.")
 
     with tab_cat:
         if cat_cols:
@@ -70,50 +70,50 @@ def main():
                     "Distinct Classes": n_uniq,
                     "Dominant Class": str(top_val),
                     "Dominant Frequency": f"{top_freq:,} ({pct_top:.1f}%)",
-                    "Cardinality": "High (>30)" if n_uniq > 30 else ("Binary" if n_uniq == 2 else "Low/Med"),
+                    "Cardinality": "High (>30)" if n_uniq > 30 else ("Binary" if n_uniq == 2 else "Low/Medium"),
                 })
             cat_df = pd.DataFrame(cat_data)
             st.dataframe(cat_df, use_container_width=True, hide_index=True)
         else:
-            st.info("ℹ️ No categorical columns detected in this dataset.")
+            st.info("No categorical columns detected in this dataset.")
 
     with tab_quality:
         render_section_header("03", "Data Quality & Anomaly Checklist")
         c1, c2 = st.columns(2)
         
         with c1:
-            st.markdown("#### 🩹 Missing Values Breakdown")
+            st.markdown("##### Missing Values Breakdown")
             null_counts = df.isnull().sum()
             null_cols = null_counts[null_counts > 0]
             if not null_cols.empty:
                 null_df = pd.DataFrame({
                     "Feature": null_cols.index,
                     "Missing Count": null_cols.values,
-                    "Missing %": (null_cols.values / len(df) * 100).round(2)
+                    "Missing Rate": (null_cols.values / len(df) * 100).round(2).astype(str) + "%"
                 }).sort_values("Missing Count", ascending=False)
                 st.dataframe(null_df, use_container_width=True, hide_index=True)
             else:
-                st.success("✓ Zero missing cells detected across all columns.")
+                st.success("Zero missing values detected across all features.")
 
         with c2:
-            st.markdown("#### 🔄 Duplicate & Constant Features")
+            st.markdown("##### Duplicate & Constant Features")
             constant_cols = [col for col in df.columns if df[col].nunique(dropna=False) <= 1]
             if constant_cols:
-                st.warning(f"⚠️ Constant features (zero variance): {', '.join(constant_cols)}")
+                st.warning(f"Constant features detected (zero variance): {', '.join(constant_cols)}")
             else:
-                st.success("✓ No zero-variance constant features detected.")
+                st.success("No zero-variance constant features detected.")
 
             if t["duplicate_count"] > 0:
-                st.warning(f"⚠️ Found {t['duplicate_count']:,} duplicate rows ({t['duplicate_pct']:.1f}%). Proceed to Data Cleaning to handle them.")
+                st.warning(f"Identified {t['duplicate_count']:,} duplicate rows ({t['duplicate_pct']:.1f}%). Use Data Cleaning stage to resolve.")
             else:
-                st.success("✓ No identical duplicate rows found.")
+                st.success("No identical duplicate rows found.")
 
     # Navigation Footer
     render_step_navigation(
         prev_page="pages/02_Upload.py",
         next_page="pages/04_Cleaning.py",
-        prev_label="← Dataset Ingestion",
-        next_label="Clean Dataset & Duplicates →"
+        prev_label="Dataset Ingestion",
+        next_label="Data Cleaning & Deduplication"
     )
 
 

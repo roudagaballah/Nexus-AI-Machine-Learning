@@ -66,13 +66,13 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
         required_raw_features = [c for c in ref_raw_df.columns if c != target_col]
 
     if not required_raw_features:
-        st.warning("⚠️ No input features identified for live testing.")
+        st.warning("No input features identified for live testing.")
         return
 
     sub_single, sub_batch, sub_inspect = st.tabs([
-        "🎛️ Single Sample Live Tester (Raw Inputs)",
-        "📁 Batch Raw Test Dataset Upload (CSV/Excel)",
-        "🔍 Inspect Dataset Observations",
+        "Single-Sample Live Tester",
+        "Batch Test Dataset Ingestion",
+        "Inspect Dataset Observations",
     ])
 
     # =========================================================================
@@ -86,7 +86,7 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
             # Quick Preset Actions
             col_b1, col_b2, col_b3 = st.columns(3)
             with col_b1:
-                if st.button("🎲 Random Sample from Dataset", use_container_width=True, key="btn_single_rand"):
+                if st.button("Sample Random Observation", use_container_width=True, key="btn_single_rand", type="secondary"):
                     if ref_raw_df is not None and len(ref_raw_df) > 0:
                         rand_row = ref_raw_df.sample(n=1, random_state=np.random.randint(0, 100000)).iloc[0]
                         for feat in required_raw_features:
@@ -95,7 +95,7 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                         st.rerun()
 
             with col_b2:
-                if st.button("📊 Set to Feature Means / Defaults", use_container_width=True, key="btn_single_means"):
+                if st.button("Set to Feature Means", use_container_width=True, key="btn_single_means", type="secondary"):
                     for feat in required_raw_features:
                         if feat in pipeline.raw_numeric_stats:
                             st.session_state[f"raw_in_{feat}"] = float(pipeline.raw_numeric_stats[feat]["mean"])
@@ -104,7 +104,7 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                     st.rerun()
 
             with col_b3:
-                if st.button("🔄 Set to Feature Minimums", use_container_width=True, key="btn_single_mins"):
+                if st.button("Set to Feature Minimums", use_container_width=True, key="btn_single_mins", type="secondary"):
                     for feat in required_raw_features:
                         if feat in pipeline.raw_numeric_stats:
                             st.session_state[f"raw_in_{feat}"] = float(pipeline.raw_numeric_stats[feat]["min"])
@@ -170,7 +170,7 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                         single_raw_input[feat] = val
 
             render_html("<br>")
-            if st.button("🔮 RUN INTELLIGENT MODEL INFERENCE", type="primary", use_container_width=True, key="btn_run_single_raw_pred"):
+            if st.button("Run Inference", type="primary", use_container_width=True, key="btn_run_single_raw_pred"):
                 raw_input_df = pd.DataFrame([single_raw_input])
 
                 try:
@@ -178,11 +178,11 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                     is_valid, errors, warnings = pipeline.validate_raw_input(raw_input_df)
                     if not is_valid:
                         for err in errors:
-                            st.error(f"❌ Validation Error: {err}")
+                            st.error(f"Validation Error: {err}")
                     else:
                         if warnings:
                             for w in warnings:
-                                st.caption(f"⚠️ {w}")
+                                st.caption(f"Warning: {w}")
 
                         # Transform through full training preprocessing pipeline
                         transformed_input = pipeline.transform(raw_input_df)
@@ -194,24 +194,24 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                         # Render Inference Result Card
                         render_html("<br>")
                         with st.container(border=True):
-                            render_section_header("02", "Instant Inference Telemetry")
+                            render_section_header("02", "Inference Prediction Result")
 
                             if problem_type == "Classification":
                                 col_r1, col_r2 = st.columns([1, 1.5])
                                 with col_r1:
                                     render_html(f"""
-                                    <div style="background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(139,92,246,0.15)); border: 1px solid rgba(56,189,248,0.4); border-radius: 14px; padding: 22px; text-align: center;">
-                                        <div style="color: #94A3B8; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px;">🎯 PREDICTED CLASS</div>
-                                        <div style="color: #38BDF8; font-size: 2.2rem; font-weight: 900; text-shadow: 0 0 16px rgba(56,189,248,0.4);">{decoded_pred}</div>
+                                    <div style="background: var(--bg-surface-elevated); border: 1px solid var(--primary-border); border-radius: 10px; padding: 20px; text-align: center;">
+                                        <div style="color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 6px;">Predicted Class</div>
+                                        <div style="color: var(--primary); font-size: 28px; font-weight: 700;">{decoded_pred}</div>
                                     </div>
                                     """)
                                     if hasattr(model, "predict_proba"):
                                         probs = model.predict_proba(transformed_input)[0]
                                         max_prob = np.max(probs)
                                         render_html(f"""
-                                        <div style="margin-top: 10px; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; text-align: center;">
-                                            <span style="color: #CBD5E1; font-size: 0.9rem;">Confidence Score: </span>
-                                            <span style="color: #10B981; font-size: 1.2rem; font-weight: 800;">{max_prob:.2%}</span>
+                                        <div style="margin-top: 10px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; text-align: center;">
+                                            <span style="color: var(--text-secondary); font-size: 13px;">Confidence Score: </span>
+                                            <span style="color: var(--success); font-size: 16px; font-weight: 700;">{max_prob:.2%}</span>
                                         </div>
                                         """)
 
@@ -221,24 +221,24 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                                         classes = pipeline.target_classes_ if pipeline.target_classes_ is not None else getattr(model, "classes_", [f"Class {i}" for i in range(len(probs))])
                                         st.plotly_chart(plot_prediction_probabilities(classes, probs), use_container_width=True)
                                     else:
-                                        st.info("ℹ️ Prediction generated successfully. (Model does not support predict_proba curve).")
+                                        st.info("Prediction generated successfully. (Probability distribution unavailable for this estimator).")
 
                             elif problem_type == "Regression":
                                 col_r1, col_r2 = st.columns(2)
                                 with col_r1:
                                     render_html(f"""
-                                    <div style="background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(56,189,248,0.15)); border: 1px solid rgba(16,185,129,0.4); border-radius: 14px; padding: 22px; text-align: center;">
-                                        <div style="color: #94A3B8; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px;">🎯 PREDICTED VALUE ({target_col or 'Target'})</div>
-                                        <div style="color: #10B981; font-size: 2.4rem; font-weight: 900; text-shadow: 0 0 16px rgba(16,185,129,0.4);">{float(decoded_pred):.4f}</div>
+                                    <div style="background: var(--bg-surface-elevated); border: 1px solid var(--success-border); border-radius: 10px; padding: 20px; text-align: center;">
+                                        <div style="color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 6px;">Predicted Value ({target_col or 'Target'})</div>
+                                        <div style="color: var(--success); font-size: 30px; font-weight: 700;">{float(decoded_pred):.4f}</div>
                                     </div>
                                     """)
                                 with col_r2:
                                     if target_col and target_col in pipeline.raw_numeric_stats:
                                         t_stat = pipeline.raw_numeric_stats[target_col]
                                         render_html(f"""
-                                        <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 18px;">
-                                            <div style="color: #94A3B8; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;">📊 TRAINING TARGET DISTRIBUTION</div>
-                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #CBD5E1;">
+                                        <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 16px;">
+                                            <div style="color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Training Target Range</div>
+                                            <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary);">
                                                 <span>Min: <b>{t_stat['min']:.2f}</b></span>
                                                 <span>Median: <b>{t_stat['median']:.2f}</b></span>
                                                 <span>Max: <b>{t_stat['max']:.2f}</b></span>
@@ -248,21 +248,21 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
 
                             elif problem_type == "Clustering":
                                 render_html(f"""
-                                <div style="background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(236,72,153,0.15)); border: 1px solid rgba(139,92,246,0.4); border-radius: 14px; padding: 22px; text-align: center;">
-                                    <div style="color: #94A3B8; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px;">🧩 ASSIGNED CLUSTER</div>
-                                    <div style="color: #A855F7; font-size: 2.4rem; font-weight: 900; text-shadow: 0 0 16px rgba(168,85,247,0.4);">Cluster {decoded_pred}</div>
+                                <div style="background: var(--bg-surface-elevated); border: 1px solid var(--primary-border); border-radius: 10px; padding: 20px; text-align: center;">
+                                    <div style="color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 6px;">Assigned Cluster</div>
+                                    <div style="color: var(--primary); font-size: 30px; font-weight: 700;">Cluster {decoded_pred}</div>
                                 </div>
                                 """)
 
                 except Exception as e:
-                    st.error(f"❌ Prediction failed: {e}")
+                    st.error(f"Prediction failed: {e}")
 
     # =========================================================================
     # TAB 2: BATCH RAW TEST DATASET UPLOAD
     # =========================================================================
     with sub_batch:
         with st.container(border=True):
-            render_section_header("01", "Upload Unseen Raw Test Dataset (CSV / Excel)")
+            render_section_header("01", "Upload Unseen Test Dataset (CSV / XLSX)")
             st.caption("Upload a new file containing raw unseen test data. Nexus AI will validate features, apply the full training preprocessing pipeline automatically, evaluate test metrics (if target column is present), and generate downloadable predictions.")
 
             uploaded_test_file = st.file_uploader(
@@ -278,29 +278,29 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                     else:
                         batch_raw_df = pd.read_excel(uploaded_test_file)
 
-                    st.info(f"📄 Loaded file: `{uploaded_test_file.name}` ({batch_raw_df.shape[0]:,} rows, {batch_raw_df.shape[1]} columns)")
+                    st.info(f"Loaded file: `{uploaded_test_file.name}` ({batch_raw_df.shape[0]:,} observations, {batch_raw_df.shape[1]} features)")
 
                     # Validate raw features
                     is_valid, errors, warnings = pipeline.validate_raw_input(batch_raw_df, require_target=False)
 
                     if not is_valid:
                         for err in errors:
-                            st.error(f"❌ Schema Error: {err}")
+                            st.error(f"Schema Error: {err}")
                     else:
                         if warnings:
                             for w in warnings:
-                                st.warning(f"⚠️ {w}")
+                                st.warning(f"Warning: {w}")
 
                         has_target = bool(target_col and target_col in batch_raw_df.columns)
 
                         if has_target:
-                            st.success(f"🎯 Target column `{target_col}` detected in test file! System will calculate unseen holdout evaluation benchmarks.")
+                            st.success(f"Target column `{target_col}` detected in test file. Benchmark metrics will be evaluated against ground truth.")
                         else:
-                            st.info("ℹ️ No target column detected. System will operate in prediction-only inference mode.")
+                            st.info("No target column detected. Operating in inference-only prediction mode.")
 
                         render_html("<br>")
-                        if st.button("🚀 EXECUTE BATCH TEST PIPELINE & PREDICTIONS", type="primary", use_container_width=True, key="btn_run_batch_test"):
-                            with st.spinner("⚡ Applying preprocessing pipeline and generating predictions..."):
+                        if st.button("Generate Batch Predictions", type="primary", use_container_width=True, key="btn_run_batch_test"):
+                            with st.spinner("Applying preprocessing pipeline and generating predictions..."):
                                 # 1. Preprocess raw data through pipeline
                                 batch_transformed = pipeline.transform(batch_raw_df)
 
@@ -330,10 +330,10 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                                     render_html("<br>")
                                     render_section_header("02", "Unseen Test Benchmark Telemetry")
                                     test_cards = [
-                                        {"icon": "🎯", "label": "Test Accuracy", "value": f"{test_acc:.2%}", "sub": "Unseen Dataset", "delta_type": "pos"},
-                                        {"icon": "⚖️", "label": "Test F1 Score", "value": f"{test_f1:.2%}", "sub": "Weighted Average", "delta_type": "pos"},
-                                        {"icon": "🎯", "label": "Test Precision", "value": f"{test_prec:.2%}", "sub": "Weighted Precision"},
-                                        {"icon": "🔍", "label": "Test Recall", "value": f"{test_rec:.2%}", "sub": "Weighted Recall"},
+                                        {"icon": "target", "label": "Test Accuracy", "value": f"{test_acc:.2%}", "sub": "Unseen Dataset", "delta_type": "pos"},
+                                        {"icon": "activity", "label": "Test F1 Score", "value": f"{test_f1:.2%}", "sub": "Weighted Average", "delta_type": "pos"},
+                                        {"icon": "check-circle", "label": "Test Precision", "value": f"{test_prec:.2%}", "sub": "Weighted Precision"},
+                                        {"icon": "compass", "label": "Test Recall", "value": f"{test_rec:.2%}", "sub": "Weighted Recall"},
                                     ]
                                     render_metric_grid(test_cards)
 
@@ -349,15 +349,15 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                                     render_html("<br>")
                                     render_section_header("02", "Unseen Test Benchmark Telemetry")
                                     test_cards = [
-                                        {"icon": "🎯", "label": "Test R² Score", "value": f"{t_r2:.4f}", "sub": "Unseen Dataset", "delta_type": "pos"},
-                                        {"icon": "📉", "label": "Test RMSE", "value": f"{t_rmse:.4f}", "sub": "Root Mean Squared Error", "delta_type": "pos"},
-                                        {"icon": "📏", "label": "Test MAE", "value": f"{t_mae:.4f}", "sub": "Mean Absolute Error"},
-                                        {"icon": "🧬", "label": "Test Samples", "value": f"{len(batch_raw_df):,}", "sub": "Evaluated Rows"},
+                                        {"icon": "target", "label": "Test R² Score", "value": f"{t_r2:.4f}", "sub": "Unseen Dataset", "delta_type": "pos"},
+                                        {"icon": "activity", "label": "Test RMSE", "value": f"{t_rmse:.4f}", "sub": "Root Mean Squared Error", "delta_type": "pos"},
+                                        {"icon": "sliders", "label": "Test MAE", "value": f"{t_mae:.4f}", "sub": "Mean Absolute Error"},
+                                        {"icon": "database", "label": "Test Samples", "value": f"{len(batch_raw_df):,}", "sub": "Evaluated Observations"},
                                     ]
                                     render_metric_grid(test_cards)
 
                                 render_html("<br>")
-                                render_section_header("03", "Predictions Matrix")
+                                render_section_header("03", "Predictions Output Matrix")
                                 st.dataframe(out_df, use_container_width=True)
 
                                 # Download Actions
@@ -366,7 +366,7 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                                 with col_dl1:
                                     csv_bytes = out_df.to_csv(index=False).encode("utf-8")
                                     st.download_button(
-                                        label="📥 Download Predictions as CSV",
+                                        label="Download Predictions as CSV",
                                         data=csv_bytes,
                                         file_name=f"predicted_{uploaded_test_file.name}.csv",
                                         mime="text/csv",
@@ -378,7 +378,7 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                                     with pd.ExcelWriter(excel_buf, engine="openpyxl") as writer:
                                         out_df.to_excel(writer, index=False)
                                     st.download_button(
-                                        label="📥 Download Predictions as Excel (.xlsx)",
+                                        label="Download Predictions as Excel (.xlsx)",
                                         data=excel_buf.getvalue(),
                                         file_name=f"predicted_{uploaded_test_file.name}.xlsx",
                                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -387,7 +387,7 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                                     )
 
                 except Exception as e:
-                    st.error(f"❌ Error processing test dataset: {e}")
+                    st.error(f"Error processing test dataset: {e}")
 
     # =========================================================================
     # TAB 3: INSPECT DATASET OBSERVATIONS
@@ -416,18 +416,18 @@ def render_live_testing_hub(pipeline: PreprocessingPipeline):
                             is_match = (str(row_dec) == str(actual_val)) if problem_type == "Classification" else None
 
                             render_html(f"""
-                            <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px;">
-                                <div style="color: #94A3B8; font-size: 0.8rem; font-weight: 700;">GROUND TRUTH (ACTUAL):</div>
-                                <div style="color: #F8FAFC; font-size: 1.3rem; font-weight: 800; margin-bottom: 8px;">{actual_val}</div>
-                                <div style="color: #94A3B8; font-size: 0.8rem; font-weight: 700;">MODEL PREDICTION:</div>
-                                <div style="color: #38BDF8; font-size: 1.3rem; font-weight: 800; margin-bottom: 8px;">{row_dec}</div>
+                            <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 16px;">
+                                <div style="color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase;">Ground Truth (Actual):</div>
+                                <div style="color: var(--text-primary); font-size: 20px; font-weight: 700; margin-bottom: 10px;">{actual_val}</div>
+                                <div style="color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase;">Model Prediction:</div>
+                                <div style="color: var(--primary); font-size: 20px; font-weight: 700; margin-bottom: 10px;">{row_dec}</div>
                                 {f'<span class="metric-badge-delta pos">✓ Accurate Match</span>' if is_match else f'<span class="metric-badge-delta neg">✗ Misclassified</span>' if is_match is False else ''}
                             </div>
                             """)
                         else:
                             st.write(f"**Predicted Output:** `{row_dec}`")
                     except Exception as e:
-                        st.error(f"Error inspecting row: {e}")
+                        st.error(f"Error inspecting observation: {e}")
             else:
                 st.info("No active dataset in memory to inspect.")
 
@@ -441,12 +441,12 @@ def main():
     model = st.session_state.get("model")
     if model is None:
         render_hero(
-            badge="⚠️ EVALUATION GUARD",
-            title="Model Diagnostics & Performance",
-            subtitle="Deep model telemetry and testing requires a trained model in memory."
+            badge="Evaluation Guard",
+            title="Model Diagnostics & Performance Evaluation",
+            subtitle="Deep model telemetry and testing requires an active trained model in memory."
         )
-        st.warning("🤖 No active trained model found in session state.")
-        if st.button("🧠 Jump to Model Training Studio", use_container_width=True):
+        st.warning("No active trained model found in session state.")
+        if st.button("Jump to Model Studio", use_container_width=True):
             st.switch_page("pages/11_Modeling.py")
         return
 
@@ -471,7 +471,7 @@ def main():
         st.session_state.preprocessing_pipeline = pipeline
 
     render_hero(
-        badge="● DIAGNOSTIC & TESTING PROTOCOL",
+        badge="Evaluation & Diagnostics",
         title=f"Model Evaluation & Live Testing: {model_name}",
         subtitle=f"Comprehensive performance audit, diagnostic benchmarks, and raw-data inference lab for {problem_type} architecture."
     )
@@ -483,7 +483,7 @@ def main():
             val_str = f"{v:.4f}" if "Score" in k or "R²" in k or "Index" in k or "Silhouette" in k else f"{v:.2%}" if "Accuracy" in k or "Precision" in k or "Recall" in k or "F1" in k else f"{v:.3f}"
         else:
             val_str = str(v)
-        m_cards.append({"icon": "⭐", "label": k, "value": val_str})
+        m_cards.append({"icon": "target", "label": k, "value": val_str})
     render_metric_grid(m_cards[:4])
 
     render_html("<br>")
@@ -492,7 +492,7 @@ def main():
     # SECTION 1: MODEL & PIPELINE ARCHITECTURE OVERVIEW
     # =========================================================================
     with st.container(border=True):
-        render_section_header("01", "Model Architecture & Preprocessing Pipeline Overview")
+        render_section_header("01", "Model Architecture & Pipeline Overview")
         c_ov1, c_ov2, c_ov3, c_ov4 = st.columns(4)
         c_ov1.metric("Model Architecture", model_name, delta=problem_type)
         c_ov2.metric("Target Variable", str(target_col or "Cluster ID"))
@@ -505,11 +505,11 @@ def main():
         stages_applied = pipeline.applied_stages if pipeline.applied_stages else ["Direct Features"]
         pills_html = []
         for stg in stages_applied:
-            pills_html.append(f'<span style="display:inline-block; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.3); color: #38BDF8; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-right: 8px; margin-top: 6px;">✓ {stg}</span>')
+            pills_html.append(f'<span style="display:inline-block; background: var(--primary-subtle); border: 1px solid var(--primary-border); color: var(--primary); padding: 3px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; margin-right: 6px; margin-top: 4px;">✓ {stg}</span>')
 
         render_html(f"""
-        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
-            <span style="color: #94A3B8; font-size: 13px; font-weight: 700;">ACTIVE PREPROCESSING STEPS APPLIED TO RAW INPUTS:</span>
+        <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
+            <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase;">Active Preprocessing Pipeline Stages:</span>
             <div style="margin-top: 4px;">{"".join(pills_html)}</div>
         </div>
         """)
@@ -527,11 +527,11 @@ def main():
         pred_df = st.session_state.get("predictions_df")
 
         tab_diag_cm, tab_diag_curves, tab_diag_imp, tab_diag_preds, tab_diag_report = st.tabs([
-            "🔮 Confusion Matrix",
-            "📈 ROC & PR Curves",
-            "📊 Feature Importance",
-            "📋 Holdout Predictions",
-            "📄 Classification Report",
+            "Confusion Matrix",
+            "ROC & PR Curves",
+            "Feature Importance",
+            "Holdout Predictions",
+            "Classification Report",
         ])
 
         with tab_diag_cm:
@@ -557,15 +557,15 @@ def main():
                     if fig_roc is not None:
                         st.plotly_chart(fig_roc, use_container_width=True)
                     else:
-                        st.warning("⚠️ Receiver Operating Characteristic (ROC) Curve is unavailable for the current target/model configuration.")
+                        st.warning("Receiver Operating Characteristic (ROC) Curve is unavailable for the current configuration.")
                 with c2:
                     fig_pr = plot_precision_recall_chart(y_test, y_prob, class_names=class_names)
                     if fig_pr is not None:
                         st.plotly_chart(fig_pr, use_container_width=True)
                     else:
-                        st.warning("⚠️ Precision-Recall Curve is unavailable for the current target/model configuration.")
+                        st.warning("Precision-Recall Curve is unavailable for the current configuration.")
             else:
-                st.info("ℹ️ Continuous probability or decision scores are not available for this model architecture (ROC/PR requires predict_proba or decision_function).")
+                st.info("Continuous probability or decision scores are not available for this estimator.")
 
         with tab_diag_imp:
             render_section_header("02", "Feature Importance & Model Attribution")
@@ -573,12 +573,12 @@ def main():
                 st.plotly_chart(plot_feature_importance_chart(imp_df), use_container_width=True)
                 st.dataframe(imp_df.sort_values("Importance", ascending=False), use_container_width=True, hide_index=True)
             else:
-                st.info("ℹ️ Feature importance or coefficients not available for this algorithm.")
+                st.info("Feature importance or coefficients not available for this algorithm.")
 
         with tab_diag_preds:
             render_section_header("02", "Holdout Prediction Observations")
             if pred_df is not None:
-                filter_choice = st.radio("Filter Predictions:", ["All Predictions", "Correct Only", "Misclassified Only"], horizontal=True)
+                filter_choice = st.radio("Filter:", ["All Predictions", "Correct Only", "Misclassified Only"], horizontal=True)
                 if filter_choice == "Correct Only":
                     st.dataframe(pred_df[pred_df["Accurate"] == True], use_container_width=True)
                 elif filter_choice == "Misclassified Only":
@@ -599,14 +599,14 @@ def main():
         pred_df = st.session_state.get("predictions_df")
 
         tab_scat, tab_res, tab_imp, tab_preds = st.tabs([
-            "🎯 Actual vs Predicted",
-            "📉 Residuals Diagnostics",
-            "📊 Feature Importance",
-            "📋 Holdout Predictions",
+            "Actual vs. Predicted",
+            "Residuals Diagnostics",
+            "Feature Importance",
+            "Holdout Predictions",
         ])
 
         with tab_scat:
-            render_section_header("02", "Actual Ground Truth vs Model Prediction")
+            render_section_header("02", "Actual Ground Truth vs. Predicted")
             if y_test is not None and y_pred is not None:
                 st.plotly_chart(plot_actual_vs_predicted(y_test, y_pred), use_container_width=True)
 
@@ -621,10 +621,10 @@ def main():
                 st.plotly_chart(plot_feature_importance_chart(imp_df), use_container_width=True)
                 st.dataframe(imp_df.sort_values("Importance", ascending=False), use_container_width=True, hide_index=True)
             else:
-                st.info("ℹ️ Feature weights not available for this regressor.")
+                st.info("Feature weights not available for this regressor.")
 
         with tab_preds:
-            render_section_header("02", "Holdout Predictions & Error Table")
+            render_section_header("02", "Holdout Predictions & Absolute Error")
             if pred_df is not None:
                 st.dataframe(pred_df, use_container_width=True)
 
@@ -634,9 +634,9 @@ def main():
         num_cols = X.select_dtypes(include=[np.number]).columns.tolist() if X is not None else []
 
         tab_dist, tab_pca3d, tab_data = st.tabs([
-            "🧩 Cluster Distribution",
-            "🌌 3D PCA Cluster Manifold",
-            "📋 Clustered Dataset",
+            "Cluster Distribution",
+            "3D PCA Cluster Manifold",
+            "Clustered Dataset",
         ])
 
         with tab_dist:
@@ -679,7 +679,7 @@ def main():
 
     # Model Hyperparameters Expander
     render_html("<br>")
-    with st.expander("📦 Inspect Model Internal Hyperparameters & Architecture"):
+    with st.expander("Inspect Model Internal Hyperparameters"):
         st.code(str(model), language="python")
         if hasattr(model, "get_params"):
             st.json(model.get_params())
@@ -688,8 +688,8 @@ def main():
     render_step_navigation(
         prev_page="pages/11_Modeling.py",
         next_page="pages/14_Export.py",
-        prev_label="← Model Studio",
-        next_label="Export Center & Report →"
+        prev_label="Model Studio",
+        next_label="Export Center & Report"
     )
 
 

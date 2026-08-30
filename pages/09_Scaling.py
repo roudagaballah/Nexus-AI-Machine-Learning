@@ -27,13 +27,13 @@ def main():
     num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
 
     render_hero(
-        badge="● NORMALIZATION PROTOCOL",
+        badge="Feature Engineering",
         title="Feature Scaling & Standardization",
-        subtitle="Align feature magnitudes to eliminate variance bias and accelerate machine learning convergence."
+        subtitle="Align feature magnitudes to eliminate variance bias and accelerate machine learning model convergence."
     )
 
     if not num_cols:
-        st.warning("⚠️ No numerical columns available in active dataset for scaling.")
+        st.warning("No numerical columns available in the active dataset for scaling.")
         render_step_navigation(prev_page="pages/08_Feature_Engineering.py", next_page="pages/10_Visualization.py")
         return
 
@@ -44,10 +44,10 @@ def main():
 
     # Top KPI Metrics
     metrics = [
-        {"icon": "📏", "label": "Candidate Features", "value": f"{len(candidate_cols)}", "sub": f"Out of {len(num_cols)} numerical"},
-        {"icon": "🧬", "label": "Observations", "value": f"{t['rows']:,}", "sub": "Dataset records"},
-        {"icon": "📊", "label": "Memory Footprint", "value": f"{t['memory_mb']:.2f} MB"},
-        {"icon": "⚡", "label": "Scaling Status", "value": "Scaled" if st.session_state.get("scaling_done") else "Ready", "sub": "Pipeline stage 09", "delta_type": "pos"},
+        {"icon": "sliders", "label": "Candidate Features", "value": f"{len(candidate_cols)}", "sub": f"Out of {len(num_cols)} numerical features"},
+        {"icon": "database", "label": "Observations", "value": f"{t['rows']:,}", "sub": "Dataset record count"},
+        {"icon": "bar-chart", "label": "Memory Footprint", "value": f"{t['memory_mb']:.2f} MB"},
+        {"icon": "activity", "label": "Scaling Status", "value": "Scaled" if st.session_state.get("scaling_done") else "Ready", "sub": "Pipeline stage 09", "delta_type": "pos"},
     ]
     render_metric_grid(metrics)
 
@@ -60,9 +60,9 @@ def main():
             scaler_choice = st.selectbox(
                 "Select Normalization Algorithm:",
                 [
-                    "StandardScaler (Mean = 0, Std = 1 — Universal ML Standard)",
-                    "MinMaxScaler (Compress values into [0, 1] range)",
-                    "RobustScaler (Median & IQR — Immune to heavy outliers)",
+                    "StandardScaler (Mean = 0, Std = 1 — Universal Standard)",
+                    "MinMaxScaler (Scale features into [0, 1] range)",
+                    "RobustScaler (Median & IQR — Outlier Robust)",
                     "MaxAbsScaler (Scale by absolute maximum into [-1, 1])",
                     "Normalizer (Vector unit norm per observation)",
                 ],
@@ -87,7 +87,7 @@ def main():
                 key="scale_target_features"
             )
 
-        if st.button("⚡ EXECUTE FEATURE SCALING", use_container_width=True, key="btn_apply_scaling"):
+        if st.button("Apply Feature Scaling", use_container_width=True, key="btn_apply_scaling"):
             if not target_scale_cols:
                 st.error("Please select at least one feature to scale.")
             else:
@@ -96,7 +96,7 @@ def main():
                 if scaler_obj is not None and st.session_state.get("preprocessing_pipeline"):
                     st.session_state.preprocessing_pipeline.record_scaling(scaler_obj, scaler_code, target_scale_cols)
                 set_active_data(df_scaled, stage_name="Scaling", log_entry=f"Applied {scaler_choice} on {len(target_scale_cols)} features: {', '.join(target_scale_cols)}")
-                st.success(f"✓ Successfully scaled {len(target_scale_cols)} features using {scaler_code}!")
+                st.success(f"Successfully scaled {len(target_scale_cols)} features using {scaler_code}.")
                 st.rerun()
 
     # Visual Inspection Before / After
@@ -118,8 +118,8 @@ def main():
     render_step_navigation(
         prev_page="pages/08_Feature_Engineering.py",
         next_page="pages/10_Visualization.py",
-        prev_label="← Feature Engineering",
-        next_label="Interactive Visual Analytics →"
+        prev_label="Feature Engineering",
+        next_label="Visual Analytics"
     )
 
 
