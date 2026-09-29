@@ -640,7 +640,7 @@ A formal open-source license can be added if the project is released for externa
 If you find **Nexus AI** useful or interesting, consider giving the repository a ⭐ on GitHub.
 
 **GitHub:**
-https://github.com/Alzahraa-Gamal22/Nexus-AI-Machine-Learning
+(https://github.com/roudagaballah/Nexus-AI-Machine-Learning)
 
 **Live Demo:**
 https://machine-learning-ntiprojects-t8sjjqdx2mweqbgzhpxqq3.streamlit.app/
